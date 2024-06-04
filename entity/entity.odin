@@ -29,17 +29,13 @@ Flags :: bit_set[Flag; u64]
 
 Entity :: struct {
   using link: list.Node,
-  // Physics
-  ellipsoid: Vector3,
-  position: Vector3,
-  velocity: Vector3,
-
+  using physics: PhysicsData,
   flags: Flags,
 }
 
 
 
-update_controllable :: proc(e: ^Entity) {
+update_controllable :: proc(e: ^Entity, dt: f32) {
   input: Vector3
   if rl.IsKeyDown(.W) do input.z -= 1
   if rl.IsKeyDown(.S) do input.z += 1
@@ -57,12 +53,12 @@ update_controllable :: proc(e: ^Entity) {
   if rl.IsKeyPressed(.V) do fmt.println(e.velocity)
 }
 
-update :: proc(m: ^Manager) {
+update :: proc(m: ^Manager, dt: f32) {
   it := list.iterator_head(m.entities, Entity, "link")
 
   for e in list.iterate_next(&it) {
-    if .Controllable in e.flags do update_controllable(e)
-    if .Physics in e.flags do update_physics(e)
+    if .Controllable in e.flags do update_controllable(e, dt)
+    if .Physics in e.flags do update_physics(e, dt)
   }
 }
 
