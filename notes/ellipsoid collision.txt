@@ -1,0 +1,98 @@
+Given three points in ellipsoid space in clockwise order we want to 
+check for a collsion against a sphere at its position moving along its
+velocity vector.
+
+You can parameterise the movement like to
+
+	C(t) = position + t*velocity, {0 <= t <= 1}
+
+A sphere in 3d can be defined as a position and a radius and since we are
+working in ellipsoid space. we can use a radius of 1. 
+
+	The first taks is to check if the swept sphere will intersect with 
+the triangle plane. If this is not the case then it will not intersect with
+the triangle. So we will construct the triangle plane from the points lets 
+get the normalized plane from the points:
+
+
+	Normalize(CrossProduct(p1 - p0, p2 - p0))
+
+	Once we have our normalized plane we can get a Signed Distance 
+function for the plane like so:
+
+	SignedDistance(p) = N * p + Cp
+
+If the swept sphere intersects with the triangle plane at some time t1,
+it'll rest on the front side of the plane and at some other time t1 it will
+on the back side. At all time values {t0 <= t <= t1} the swept sphere will
+intersect with the plane. The time t0 is exactlly when the the 
+SignedDistance(p) = 1. So lets solve for t0:
+
+	SignedDistance(C(t0)) = 1 
+     =  N * (position + t0*velocity) + Cp = 1
+     =  N * position + t0*N*velocity + Cp 
+     =  N * position + t0*N*velocity + Cp
+     =  t0 * B * velocity + SignedDistance(position) = 1 
+     => t0 = 1 - SignedDistance(position)/(N * Velocity)
+
+	Now to get the time t1 we just swap 1 with -1 to get:
+
+	t1 = -(1 + SignedDistance(position))/(N * velocity)
+
+	it  both t0 and t1 are outside of the range of [0,1] we know that 
+the sphere will not intersect with any.
+	Unfortunatly when the velocity is perpendicular to the normal we 
+will get N * Velocity = 0. If this is the case there are two possibilities,
+either the absolute distance from the position to the triangle plane is 
+smaller than 1, and the sphere is colliding with the triangle plane, If this
+is the case then we set t0 = 0 and t1 = 1 as the swept spher intersects the 
+plane at all times, If the absolute distance is greater than 1 then there 
+wont be a collision and we can return early from our function.
+
+	Now that we have found two time values t0 and t1 there are three
+potential cases for collision:
+	1. The Sphere collide inside the triangle.
+	2. The Sphere can collider against 1 of the three vertices.
+	3. The Sphere can collide with one of the edges of the triangle.
+	
+
+	The first case we need to consider is if the sphere does indeed collide
+with the inside of the triangle, then a collision against a vertex of edge 
+must happen "further down the velocity", So if can quickly detect if we are
+inside.
+	The Idea is to calculate the point on the plane where the sphere will make 
+first contact when moving along its velocity vector. The plane intersection
+point is calculated like this:
+
+	planeIntersectionPoint = position - planeNormal + t0*velocity.
+
+	Now We must check if this point is within the triangle. Damn that was a 
+convoluted algorithm. 
+
+	Now if the sphere does not collide within the inside of the triangle we 
+will have to do the sweep test against the edges and vertices of the triangle.
+The Idea in both cases is to check if there is a t where {t0 <= t <= t1} where 
+where the swept sphere collides against a vertex or edge.
+	Let us look at the eaiser of the two cases. The sweep against the vertex p. 
+When does a collision between a vertex and the swept sphere take place? Well...
+It is when the distance between a vertex and a swept sphere is 1. Or to make the
+calculations a little easier it is when the squared distance between. If we use 
+that for any vector V, V*V = |V|^2. then we can set up the following equation:
+
+	(C(t) - p) * (C(t) - p) = 1^2 = 1
+
+The above also reduces to a quadratic form.
+
+	At^2 + Bt + C = 0
+
+where:
+
+	A = velocity * velocity
+	B = 2(velocity * (basePoint - p))
+	C = |p - basePoint|^2 - 1
+
+	basePoint = position
+
+A quadratic eqation generally gives us two solutions and this makes sence
+
+
