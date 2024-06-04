@@ -2,6 +2,7 @@ package entity
 
 import rl "vendor:raylib"
 import "core:fmt"
+import "core:math"
 
 
 Plane :: struct #raw_union {
@@ -15,6 +16,7 @@ Plane :: struct #raw_union {
 
 CollisionData :: struct {
   intersection: Vector3,
+  distance: f32
 }
 
 
@@ -53,16 +55,13 @@ plane_signed_distance_to :: proc(plane: Plane, p: Vector3) -> f32 {
   return rl.Vector3DotProduct(p, plane.normal) + plane.constant
 }
 
-sweep_ellipsoid_triangle_collision :: proc(data: PhysicsData, triangle: [3]Vector3, dt: f32) -> (CollisionData, bool) {
+sweep_ellipsoid_triangle_collision :: proc(data: PhysicsData, triangle: [3]Vector3, dt: f32) -> (collision: CollisionData, ok: bool) {
   // convert to ellipsoid space
   triangle := triangle
   data := data
   for v, i in triangle do triangle[i] /= data.ellipsoid 
   data.velocity /= data.ellipsoid
   data.position /= data.ellipsoid
-
-  // our result
-  collision: CollisionData
 
 
   plane := plane_from_triangle(triangle) 
@@ -83,10 +82,41 @@ sweep_ellipsoid_triangle_collision :: proc(data: PhysicsData, triangle: [3]Vecto
   p := data.position - plane.normal + t0*data.velocity
   if !((0 <= t0 && t0 <= 1) || (0 <= t1 && t1 <= 1)) do return {}, false
 
-  if !check_point_in_triangle(p, triangle) do return {}, false
+  if check_point_in_triangle(p, triangle) {
+    collision.intersection = p
+    return 
+  }
+
+  {
+    v := data.position - p
+    A := data.velocity * data.velocity
+    B := 2*(rl.Vector3DotProduct(data.velocity, v))
+    C := rl.Vector3LengthSqr(v) - 1
+
+    x1, okay := root_lowest(A, B, C)
+
+  }
+
 
   collision.intersection = p
   return collision, true
+}
+
+root_lowest :: proc(a, b, c: f32) -> (x: f32, ok: bool) {
+  determinant :=  b*b - 4*a*c
+
+  if determinant < 0 do return
+
+  ok = true
+
+  sqrt_d := math.sqrt(determinant)
+  x1 := (-b + sqrt_d)/(2*a)
+  x2 := (-b - sqrt_d)/(2*a)
+
+  x = min(x1, x2)
+
+
+  return
 }
 
 check_point_in_triangle :: proc(v: Vector3, triangle: [3]Vector3) -> bool {
@@ -111,6 +141,20 @@ check_point_in_triangle :: proc(v: Vector3, triangle: [3]Vector3) -> bool {
   return ((transmute(u32)z & ~(transmute(u32)x|transmute(u32)y) & 0x80000000)) > 0
 }
 
-sweep_plane_elipsoid_intersection :: proc(plane: Plane, p: Vector3) {
+
+check_triangle :: proc(physics: PhysicsData, triangle: [3]Vector3) -> (data: CollisionData, ok: bool) {
+  // elipsoid space
+  position := physics.position / physics.ellipsoid
+  velocity := physics.velocity / physics.ellipsoid
+  points := triangle
+  for p, i in points do points[i] /= physics.ellipsoid
+
+
+  // make a plane for the triangle
+  plane := plane_from_triangle(points)
+
   
+
+
+  return
 }
