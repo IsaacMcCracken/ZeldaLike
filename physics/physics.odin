@@ -1,9 +1,12 @@
 package physics
 
+import rl "vendor:raylib"
 
 import "core:fmt"
 import "core:math"
 import glm "core:math/linalg/glsl"
+
+Mesh :: rl.Mesh
 
 Vec2 :: glm.vec2
 Vec3 :: glm.vec3
@@ -40,10 +43,14 @@ plane_from_triangle :: proc(tri:  [3]Vec3) -> Plane {
   origin := tri[0]
   
 
+  return plane_make(origin, normal)
+}
+
+plane_make :: proc(origin, normal: Vec3) -> Plane {
   return Plane {
     form = {
       normal = normal,
-      constant = -glm.dot(normal, origin),
+      constant = -glm.dot(normal, origin)
     }
   }
 }
@@ -85,7 +92,8 @@ point_in_triangle :: proc(v: Vec3, triangle: [3]Vec3) -> bool {
 collision_sphere_triangle :: proc(e: ^Entity, triangle: [3]Vec3) -> (col: Collision, collide: bool) {
   // were gonna need to clean this up quite a bit
 
-  // Convert To Sphere space
+  // Convert To Sphere space 
+  // TODO: put this in the previous funcion call
   base_pos := e.position/e.radius
   vel_norm := glm.normalize(e.velocity)/e.radius
   vel := e.velocity/e.radius
@@ -208,6 +216,12 @@ collision_sphere_triangle :: proc(e: ^Entity, triangle: [3]Vec3) -> (col: Collis
   return
 }
 
-collide_and_slide :: proc(e: ^Entity, triangle: [3]Vec3) {
-  
+collide_and_slide :: proc(e: ^Entity, mesh: Mesh) {
+
+  for i in 0..<mesh.triangleCount {
+    indices := mesh.indices[3*i:3]
+    triangle: [3]Vec3
+    for &p, n in triangle do p^ = indices[n]
+  }
+
 } 
