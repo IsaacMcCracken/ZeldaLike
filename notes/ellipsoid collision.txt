@@ -15,7 +15,7 @@ the triangle. So we will construct the triangle plane from the points lets
 get the normalized plane from the points:
 
 
-	Normalize(CrossProduct(p1 - p0, p2 - p0))
+	N = Normalize(CrossProduct(p1 - p0, p2 - p0))
 
 	Once we have our normalized plane we can get a Signed Distance 
 function for the plane like so:
@@ -96,3 +96,4 @@ where:
 A quadratic eqation generally gives us two solutions and this makes sence
 
 
+Okay we skiped the edge part but lets see whats up
