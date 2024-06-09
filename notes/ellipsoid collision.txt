@@ -96,4 +96,37 @@ where:
 A quadratic eqation generally gives us two solutions and this makes sence
 
 
-Okay we skiped the edge part but lets see whats up
+Okay we skiped the edge part but lets see whats up (it was not that hard after all)
+
+
+Sliding the sphere.
+
+So we calculated the sliding plane:
+	Plane = MakePlane(intersection, normalize(newPosition - intersection))
+
+	1. we want to move our sphere as close as possible to the sliding plane.
+	lets call this newPosition
+
+	2. Calculate the sliding plane at this new position.
+
+	3. project the original velocity vector to the sliding plane, to get a new destination
+
+	4 Make a new velocity vector by subtracting the polygon intersectino point from the new 
+	destination point.
+
+	5. Recursively call the entire collision detection routine with the new positionand the 
+	new velocity vector.
+
+	Surprisingly we recurse and for each recursion we check all the triangles all over against
+	
+
+Recursion Return Condition:
+	1. We do not hit anything, so we just update the position
+	2. The velcoity vector gets really small
+
+	Projecting generates a vector on the sliding plane. We have the sliding plane 
+
+
+	
+
+
