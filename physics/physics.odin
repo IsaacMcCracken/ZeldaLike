@@ -17,13 +17,13 @@ Vec4 :: glm.vec4
 
 
 @(require_results)
-collision_sphere_triangle :: proc(e: ^Entity, triangle: [3]Vec3) -> Collision {
+collision_sphere_triangle :: proc(position, velocity: Vec3, triangle: [3]Vec3) -> Collision {
   // were gonna need to clean this up quite a bit
 
   // Convert To Sphere space 
-  base_pos := e.position
-  vel_norm := glm.normalize(e.velocity)
-  vel := e.velocity
+  base_pos := position
+  vel_norm := glm.normalize(velocity)
+  vel := velocity
   tri := triangle
 
   plane := plane_from_triangle(tri) 
@@ -146,54 +146,24 @@ collision_sphere_triangle :: proc(e: ^Entity, triangle: [3]Vec3) -> Collision {
 }
 
 collide_and_slide :: proc(e: ^Entity, mesh: Mesh) {
-  // fmt.println(mesh)
-  found_collision := false
+
+}
+
+VERY_CLOSE_DISTANCE :: 0.00005
+
+collide_and_slide_mesh :: proc(position, velocity: Vec3, mesh: Mesh, depth: u32) -> Vec3 {
+  if depth > 5 do return position
+
+  // Check for colision here
   vertices := slice.reinterpret([]Vec3, mesh.vertices[:3*mesh.vertexCount])
   if mesh.indices != nil {
-    indices := slice.reinterpret([][3]u16, mesh.indices[:3*mesh.triangleCount])
+    triangles := slice.reinterpret([][3]u16, mesh.indices[:3*mesh.triangleCount])
+    for indices, i in triangles {
+      tri := [3]Vec3{vertices[indices[0]], vertices[indices[1]], vertices[indices[2]]}
 
-    for tri_index, i in indices {
-      
-      tri := [3]Vec3{vertices[tri_index[0]], vertices[tri_index[1]], vertices[tri_index[2]]}/e.radius
-      
-
-      col := collision_sphere_triangle(e, tri)
-
-      if col.kind != .None {
-        new_pos := e.position + col.t * e.velocity
-        sliding_plane := plane_make(col.intersection, glm.normalize(new_pos - col.intersection))
-        e.position = new_pos * e.radius
-        found_collision = true
-        break
-      } 
-    }
-
-    // panic("Not implemented so I decided to crash")
-  } else {
-    triangles := slice.reinterpret([][3]Vec3, vertices)
-
-    for triangle, i in triangles {
-      tri := triangle/e.radius
-
-      col := collision_sphere_triangle(e, tri)
-
-
-      if col.kind != .None {
-        new_pos := col.t * e.velocity
-        sliding_plane := plane_make(col.intersection, glm.normalize(new_pos - col.intersection))
-        e.position = new_pos
-        e.velocity = glm.reflect(e.velocity, sliding_plane.normal)
-      }
-
-
-      
-      
+      col := collision_sphere_triangle(position, velocity, tri)
 
     }
   }
-
-  if found_collision == false do e.position += e.velocity
-  else do e.velocity = {}
 }
-
 
