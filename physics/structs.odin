@@ -18,8 +18,11 @@ Plane :: struct #raw_union {
 Collision :: struct {
   kind: CollisionKind,
   intersection: Vec3,
+  distance: f32,
   t: f32,
 }
+
+
 
 CollisionKind :: enum u8 {
   None,

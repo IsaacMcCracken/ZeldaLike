@@ -85,3 +85,9 @@ point_in_triangle :: proc(v: Vec3, triangle: [3]Vec3) -> bool {
   // another crazy evil bit hack?
   return ((transmute(u32)z & ~(transmute(u32)x|transmute(u32)y) & 0x80000000)) > 0
 }
+
+plane_projection :: proc(k: Vec3, plane: Plane) -> Vec3 {
+  proj_n_k := glm.dot(k, plane.normal) * plane.normal
+
+  return k - proj_n_k
+}
